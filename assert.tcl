@@ -1,5 +1,4 @@
 
-
 namespace eval ::tools::assert {
 
     namespace export *
