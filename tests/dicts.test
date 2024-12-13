@@ -1,0 +1,29 @@
+#!/usr/bin/env tclsh
+
+package require tcltest
+
+source ../assert.tcl
+source ../dicts.tcl
+
+namespace import ::tcltest::*
+namespace import ::tools::dicts::*
+namespace import ::tools::assert::*
+
+
+test test-dict {} -body {            
+
+    set d [dict create x 1 y 2]
+
+    assert-eq 6 [dicts map $d x {it {expr $it + 5}}]
+    assert-eq b [dicts get $d z b]
+    assert-eq 2 [dicts get $d y 2]
+    assert-eq {1 2} [dicts list $d x y]
+
+    dicts update d y {it {expr $it + 10}}
+    assert-eq 12 [dicts get $d y 2]
+    
+    return true
+    
+} -result true
+
+cleanupTests

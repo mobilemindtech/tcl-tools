@@ -1,0 +1,12 @@
+#!/usr/bin/env tclsh
+
+package require tcltest
+
+namespace import ::tcltest::*
+
+
+test test-sum {} -body {            
+    sum 1 1
+} -result 2
+
+cleanupTests

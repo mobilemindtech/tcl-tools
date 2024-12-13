@@ -1,0 +1,37 @@
+#!/usr/bin/env tclsh
+
+package require tcltest
+
+source ../assert.tcl
+source ../lists.tcl
+
+namespace import ::tcltest::*
+namespace import ::tools::lists::*
+namespace import ::tools::assert::*
+
+
+test test-lists {} -body {            
+
+    set l [list 1 2 3 4]
+
+    assert-eq {2 3 4 5} [lists map $l {it {expr $it + 1}}]
+    assert-eq {2 4} [lists filter $l {it {expr $it % 2 == 0}}]
+    assert-eq {4 8} [lists filtermap $l {it {expr $it % 2 == 0}} {it {expr $it * 2}}]
+    assert-eq 10 [lists fold $l 0 {{acc it} {expr $it + $acc} }]
+    assert-eq {2 3 4 5} [lists fold $l [] {{acc it} {list {*}$acc [expr $it + 1]} }]
+
+    #first {first {*}$args}
+    #head {head {*}$args}
+    #second {second {*}$args}
+    #butlast {butlast {*}$args}
+    #last {last {*}$args}
+    #tail {tail {*}$args}
+    #findnext {findnext {*}$args}
+    #findallnext {findallnext {*}$args}
+
+    return true
+
+    
+} -result true
+
+cleanupTests
