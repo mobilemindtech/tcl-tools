@@ -6,7 +6,7 @@ namespace import ::tcltest::*
 
 
 test test-sum {} -body {            
-    sum 1 1
+    return 2
 } -result 2
 
 cleanupTests

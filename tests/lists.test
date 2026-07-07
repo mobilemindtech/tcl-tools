@@ -19,13 +19,20 @@ test test-lists {} -body {
     assert-eq {4 8} [lists filtermap $l {it {expr $it % 2 == 0}} {it {expr $it * 2}}]
     assert-eq 10 [lists fold $l 0 {{acc it} {expr $it + $acc} }]
     assert-eq {2 3 4 5} [lists fold $l [] {{acc it} {list {*}$acc [expr $it + 1]} }]
+    assert-eq 1 [lists first $l]
+    assert-eq 1 [lists head $l]
+    assert-eq 2 [lists second $l]
+    assert-eq {1 2 3} [lists butlast $l]
+    assert-eq 4 [lists last $l]
+    assert-eq {2 3 4} [lists tail $l]
+    assert-eq d [lists findnext {a b c d} c]
+    assert-eq {d y} [lists findallnext {a b c d c y} c]
 
-    #first {first {*}$args}
-    #head {head {*}$args}
-    #second {second {*}$args}
-    #butlast {butlast {*}$args}
-    #last {last {*}$args}
-    #tail {tail {*}$args}
+    assert-eq {x y} [lists findnext-x {a b -opt x y} -opt 2]
+    assert-eq {{x y} {z f}} [lists findallnext-x {a b -opt x y -opt z f} -opt 2]
+    
+    
+
     #findnext {findnext {*}$args}
     #findallnext {findallnext {*}$args}
 
