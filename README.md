@@ -8,5 +8,5 @@
 * props - Class to manipulate props
 * tcldoc - Generate code comment documentation
 
-Documentation [Documentation.md]
+[Documentation](Documentation.md)
 
