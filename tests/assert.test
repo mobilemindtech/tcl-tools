@@ -4,9 +4,8 @@ package require tcltest
 
 namespace import ::tcltest::*
 
-
-test test-sum {} -body {            
-    return 2
+test test-sum {} -body {
+  return 2
 } -result 2
 
 cleanupTests

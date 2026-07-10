@@ -1,8 +1,23 @@
 namespace eval ::tools::lists {
 
   namespace export \
-	list-map list-filter lfilter-map lfold lfirst lfind-next lfindall-next lfirst llast ltail lists
+  listmap \
+  listfilter \
+  lfiltermap \
+  lfold \
+  lfirst \
+  lfirst \
+  llast \
+  ltail \
+  lfindnext \
+  lhead \
+  lists
 
+  ## Create new list with mapped items
+  #
+  # @param l List
+  # @param lambda Lambda to apply create new item
+  # @retrun New list
   proc map {l lambda} {
     set results []
     foreach it $l {
@@ -11,6 +26,11 @@ namespace eval ::tools::lists {
     return $results
   }
 
+  ## Return a new list with filtered items
+  #
+  # @param l List
+  # @param lambda Lambda to apply filter
+  # @retrun New list
   proc filter {l lambda} {
     set results []
     foreach it $l {
@@ -21,13 +41,21 @@ namespace eval ::tools::lists {
     return $results
   }
 
+  ## Map only filteres items
+  #
+  # @param l List
+  # @param lfilter Lambda to apply filter
+  # @param lmap Lambda to apply map
+  # @retrun New list
   proc filtermap {l lfilter lmap} {
     map [filter $l $lfilter] $lmap
   }
 
-    # @param l list
-    # @param acc accumulator
-    # @param lambda {acc val {}}
+  ## Fold list
+  #
+  # @param l The list
+  # @param acc Inicial accumulator
+  # @param lambda Lambda to apply accumulator
   proc fold {l acc lambda} {
     foreach it $l {
       set acc [apply $lambda $acc $it]
@@ -35,6 +63,11 @@ namespace eval ::tools::lists {
     return $acc
   }
 
+  ## Get first or default value
+  #
+  # @param l The list
+  # @param def The default value
+  # @return The first value or default
   proc first {l {def ""}} {
     if {[llength $l] > 0} {
       lindex $l 0
@@ -43,6 +76,11 @@ namespace eval ::tools::lists {
     }
   }
 
+  ## Get second or default value
+  #
+  # @param l The list
+  # @param def The default value
+  # @return The second value or default
   proc second {l {def ""}} {
     if {[llength $l] > 1} {
       lindex $l 1
@@ -51,6 +89,11 @@ namespace eval ::tools::lists {
     }
   }
 
+  ## Get last or default value
+  #
+  # @param l The list
+  # @param def The default value
+  # @return The last value or default
   proc last {l {def ""}} {
     if {[llength $l] > 0} {
       lindex $l end
@@ -59,6 +102,10 @@ namespace eval ::tools::lists {
     }
   }
 
+  ## Get tail of list
+  #
+  # @param l The list
+  # @return The tail of list
   proc tail {l} {
     if {[llength $l] > 1} {
       lrange $l 1 end
@@ -67,105 +114,151 @@ namespace eval ::tools::lists {
     }
   }
 
-  proc butlast {l} {
+  ## Get first or default value
+  #
+  # @param l The list
+  # @param def The default value
+  # @return The first value or default
+  proc head {l {def ""}} {
+    if {[llength $l] > 0} {
+      lindex $l 0
+    } else {
+      return $def
+    }
+  }
+
+  ## Get list[end-1]
+  #
+  # @param l The list
+  # @param def Default value
+  # @return list[end-1] or default
+  proc butlast {l {def ""}} {
     if {[llength $l] > 1} {
       lrange $l 0 end-1
+    } else {
+      return $def
+    }
+  }
+
+  ## Get list item by index
+  #
+  # @param l The list
+  # @param i The index
+  # @return The value of index or default value
+  proc nth {l i {def ""}} {
+    if {$i < [llength $l]} {
+      lindex $l $i
+    } else {
+      return $def
+    }
+  }
+
+  ## Get sublist start on index to end
+  #
+  # @param l The list
+  # @param i The index
+  # @return The new sublist
+  proc nthrest {l i} {
+    if {$i < [llength $l]} {
+      lrange $l $i end
     } else {
       return {}
     }
   }
 
-    # find index, return index+1 if x = 1 or list of <index+1...index+1+x> if x > 0.
-  proc findnext-x {l val x} {
-    set i [lsearch $l $val]
-    if {$i > 0} {
-      if {$x == 1} {
-        incr i
-        if {$i < [llength $l]} {
-          return [lindex $l $i]
-        }
-      } else {
-        incr x $i
-        incr i ;# next, position + 1
-        if {$x < [llength $l]} {
-          return [lrange $l $i $x]
-        }
-      }
+  ## Return next of query index
+  #
+  # Next is found index + 1. If -all is set, each founded index + 1 is returned orlse only first result is returned.
+  # Of size is set, calcule next + size to generate a list of results that represents the next of founded index.
+  #
+  # args:
+  #  -all Use to return all next values to all index found, orelse return only first result.
+  #  -size Use to set return size (next+size), default is 1
+  #
+  # If next + max > list size, a erros is thrown
+  # <code>
+  #   [findnext {a b c d c y} c -all] == {d y}
+  #   [findnext {a b -opt x y} -opt -size 2] == {x y}
+  #   [findnext {a b -opt x y -opt z f} -opt -all -size 2] == {{x y} {z f}}
+  #   [findnext {a b -opt x y c -opt z f d} -opt -all -size 2] == {{x y} {z f}}
+  #   [findnext {a b -opt x y c -opt z f d} -opt -all] == {x z}
+  #   [findnext {a b -opt x y c -opt z f d} -opt] == x
+  # </code>
+  # @param l The list
+  # @param query Query to search
+  # @param args -all -size
+  # @return The next
+  proc findnext {l query args} {
+    set all [expr {[lsearch $args {-all}] > -1}]
+    set size [lsearch $args {-size}]
+    set sizenext [expr {$size + 1}]
+
+    if {$size > -1 && $sizenext < [llength $args]} {
+      set size [lindex $args $sizenext]
+    } else {
+      set size 1
     }
-    return {}
-  }
 
-    # find by index, return index+1 or {}
-  proc findnext {l val {x 1}} {
-    findnext-x $l $val $x
-  }
-
-    # find all index by val. return list of <index+1...index+1+x>
-  proc findallnext-x {l val x} {
-    set idxs [lsearch -all $l $val]
+    set idxs [lsearch -all $l $query]
     set results {}
     foreach i $idxs {
-      set vals {}
-      set y [expr {$i + 1}]
-      set max [expr {$i + $x}]
+      set next [expr {$i + 1}]
+      set max [expr {$i + $size}]
       if {$max < [llength $l]} {
-        lappend results [lrange $l $y $max]
+
+        if { !$all } {
+          if { $size == 1 } {
+            return [lindex $l $next]
+          } else {
+            return [lrange $l $next $max]
+          }
+        }
+
+        lappend results [lrange $l $next $max]
+      } else {
+        return -code error "index $i has not next+$size"
       }
     }
     return $results
   }
 
-    # return all index by val. return list of <index+1>
-  proc findallnext {l val {x 0}} {
-
-    if {$x > 1} {
-      return [findallnext-x $l $val $x]
-    }
-
-    set idxs [lsearch -all $l $val]
-    set results {}
-    foreach i $idxs {
-      set y [expr {$i + 1}]
-      if {$y < [llength $l]} {
-        lappend results [lindex $l $y]
-      }
-    }
-    return $results
-  }
-
+  ## Function that handle all commands of lists file
+  #
+  # @param cmd Command
+  # @param d The dict
+  # @param args The command arguments
   proc lists {cmd args} {
     switch $cmd {
-      map { map {*}$args }
-      filter { filter {*}$args }
-      filtermap { filtermap {*}$args }
+      map {map {*}$args}
+      filter {filter {*}$args}
+      filtermap {filtermap {*}$args}
       fold {fold {*}$args}
       first {first {*}$args}
-      head {first {*}$args}
+      head {head {*}$args}
       second {second {*}$args}
       butlast {butlast {*}$args}
       last {last {*}$args}
       tail {tail {*}$args}
+      head {head {*}$args}
+      nth {nth {*}$args}
+      nthrest {nthrest {*}$args}
       findnext {findnext {*}$args}
-      findallnext {findallnext {*}$args}
-      findnext-x {findnext {*}$args}
-      findallnext-x {findallnext {*}$args}
       default {
-        return -code error "unknown cmd"
+        return -code error "unknown command: $cmd"
       }
     }
 
   }
 
-  interp alias {} list-map {} map
-  interp alias {} list-filter {} filter
-  interp alias {} lfilter-map {} filtermap
+  interp alias {} listmap {} map
+  interp alias {} listfilter {} filter
+  interp alias {} lfiltermap {} filtermap
   interp alias {} lfold {} fold
   interp alias {} lfirst {} first
-  interp alias {} lhead {} first
+  interp alias {} lhead {} head
   interp alias {} lsecond {} second
   interp alias {} lbutlast {} butlast
   interp alias {} llast {} last
   interp alias {} ltail {} tail
-  interp alias {} lfind-next {} findnext
-  interp alias {} lfindall-next {} findallnext
+  interp alias {} lfindnext {} findnext
 }

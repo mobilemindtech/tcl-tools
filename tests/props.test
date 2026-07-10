@@ -3,11 +3,103 @@
 
 package require tcltest
 
+source ./lib.tcl
+
 namespace import ::tcltest::*
 
+namespace import ::tools::assert::*
+namespace import ::tools::props::*
 
-test test-sum {} -body {            
-    return 2
-} -result 2
+oo::class create MyClass {
+    superclass Props
+
+    constructor {} {
+        next id name items hash num
+    }
+}
+
+test test-create-new-prop {} -body {            
+    
+    set obj [MyClass new]
+
+    $obj prop id 1
+    $obj prop name ricardo
+
+    assert-eq 1 [$obj prop id]
+    assert-eq ricardo [$obj prop name]
+
+    return true
+
+} -result true
+
+test test-add-invalid-prop {} -body {
+
+    set obj [MyClass new]
+
+    try {
+        $obj prop test 1
+        fail
+    } on error e {
+        if {![string match {prop test not allowed to*} "$e"]} {
+            fail
+        }
+    }    
+
+    $obj pemits_new_props
+    $obj prop test 1
+
+    return [$obj prop test]
+} -result 1
+
+test test-cases {} -body {            
+    
+    set obj [MyClass new]
+
+    
+    assert-eq 1 [$obj propdef id 1]
+
+    $obj prop id 1
+    
+    assert-eq 2 [$obj propmap id {{v} {expr $v+1}}]
+
+    $obj prop items [list 1 2 3]
+
+    assert-eq 3 [$obj proplist items length]
+    assert-eq 1 [$obj proplist items search 2]
+    assert-eq {2 3 4} [$obj proplist items map {{v} {expr $v+1}}]
+    assert-eq {2 3} [$obj proplist items filter {{v} {expr $v > 1}}]
+    assert-eq {3 4} [$obj proplist items filtermap {{v} {expr $v > 1}} {{v} {expr $v+1}}]
+
+    $obj prop hash [dict create x 1 y 2]
+
+    assert-eq 1 [$obj propdict hash exists x]
+    assert-eq 0 [$obj propdict hash exists z]
+    assert-eq 2 [$obj propdict hash get y]
+    assert-eq 5 [$obj propdict hash get z 5]
+    assert-eq 2 [$obj propdict hash size]
+
+    $obj propdict hash set z 5
+
+    assert-eq 3 [$obj propdict hash size]
+    assert-eq 5 [$obj propdict hash get z]
+
+    $obj prop num 5
+    $obj propapply num {{x} {expr $x+5}} 
+    
+    assert-eq 10 [$obj prop num]
+
+    $obj propmerge items [list 4 5 6]
+    assert-eq {1 2 3 4 5 6} [$obj prop items]
+
+    $obj prop id 1
+    $obj prop name ricardo
+    $obj set_json_props {id ID int} {name NAME string}
+    $obj set_only_json_props
+
+    assert-eq {data {ID 1 NAME ricardo} tpl {ID int NAME string}} [$obj to_json] 
+    
+    return true
+
+} -result true
 
 cleanupTests
