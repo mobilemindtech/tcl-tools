@@ -190,13 +190,19 @@ namespace eval ::tools::lists {
   # @return The next
   proc findnext {l query args} {
     set all [expr {[lsearch $args {-all}] > -1}]
+    set default_idx [lsearch $args {-default}]
     set size [lsearch $args {-size}]
     set sizenext [expr {$size + 1}]
+    set default_val {}
 
     if {$size > -1 && $sizenext < [llength $args]} {
       set size [lindex $args $sizenext]
     } else {
       set size 1
+    }
+
+    if {$default_idx > -1 && $default_idx < [llength $args]} {
+      set default_val [lindex $args [expr {$default_idx+1}]]
     }
 
     set idxs [lsearch -all $l $query]
@@ -216,9 +222,19 @@ namespace eval ::tools::lists {
 
         lappend results [lrange $l $next $max]
       } else {
+
+        if {$size == 1 && $default_idx > -1} {
+          return $default_val
+        }
+
         return -code error "index $i has not next+$size"
       }
     }
+
+    if {$size == 1 && $default_idx > -1} {
+      return $default_val
+    }
+
     return $results
   }
 
